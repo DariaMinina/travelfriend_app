@@ -1,6 +1,7 @@
 import json
 
 from flask import Flask, render_template, session, request, jsonify, current_app  # глобальный объект приложения импортируем
+from psycopg2 import OperationalError
 
 from database import PostgreSQLHandler
 
@@ -71,6 +72,62 @@ def create_user():
         'message': 'Данные успешно получены',
         'data': dict_fields
     }), 200
+
+
+# Параметры: ?country=France&interests=cycling,hiking
+# Эта операция позволит искать потенциальных друзей на основе различных критериев.
+@app.route("/friends/search", methods=['GET'])
+def search_friends():
+
+    handler = PostgreSQLHandler(
+        current_app.config['DB_CONFIG']
+    )
+
+    # Подключение к базе данных
+    if not handler.connect():
+        return jsonify({'error': 'Failed to connect to database'}), 500
+        
+    # Получаем параметры запроса
+    country = request.args.get('country', None)
+    interests = request.args.get('interests', None)
+
+    if interests is not None:
+        interests_str = repr(tuple(interests.split(',')))
+        interests_conditions = rf"AND interest IN {interests_str}"
+
+    if country is not None:
+        country_str = f"'{country}'"
+        country_conditions = rf"AND country = {country_str}"
+
+    # Формируем запрос
+    query = f"""
+        SELECT u.username, u.city, STRING_AGG(ua.interest, ', ') as interests
+        FROM app.users u 
+            INNER JOIN app.user_attr ua 
+            ON u.id = ua.user_id 
+        WHERE 1 = 1 
+        {interests_conditions}
+        {country_conditions}
+        GROUP BY u.username, u.city 
+    """
+
+    print(query)
+
+    try:
+        result = handler.execute_query(query=query)
+    except OperationalError as err:
+        return jsonify({
+            'error': 'Проблемы с поиском друзей в базе'
+        }), 500
+
+    if hasattr(handler, 'connection'):
+        handler.close_connection()
+
+    return jsonify({
+        'message': 'Данные успешно получены',
+        'data': result
+    }), 200
+
 
 
 if __name__ == "__main__":

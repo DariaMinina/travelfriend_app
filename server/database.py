@@ -97,23 +97,27 @@ class PostgreSQLHandler:
     def execute_query(self, query, params=None):
         if not self.connection:
             print("Не подключено к базе данных")
-            return False
+            return None
         
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(query, params)
                 self.connection.commit()
-                return True
+                
+                columns = [col[0] for col in cursor.description]
+                results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                return results
         except OperationalError as e:
             print(f"Ошибка выполнения запроса: {str(e)}")
             self.connection.rollback()
-            return False
+            return None
         except ProgrammingError as e:
             print(f"Ошибка синтаксиса SQL: {str(e)}")
             self.connection.rollback()
-            return False
+            return None
         
-        return True
+        return None
 
     def load_data(self, table_name, data):
         print('data.keys(): ....', data.keys(), 'data.values(): ....', data.values(),)

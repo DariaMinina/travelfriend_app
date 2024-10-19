@@ -55,7 +55,7 @@ def create_user():
     
     # Загрузка данных в базу
     if handler.load_data("app.users", data):
-        result = handler.execute_query("SELECT * FROM app.users WHERE email = %s", (data['email'],))
+        result = handler.execute_query("SELECT id FROM app.users WHERE email = %s", (data['email'],))
         
         return jsonify({
             'message': 'Данные успешно получены!',
@@ -129,6 +129,155 @@ def search_friends():
     }), 200
 
 
+# {
+#   "user_id": 123,
+#   "friend_id": 456
+# }
+# Запрос на дружбу
+@app.route("/friendships", methods=['POST'])
+def friendship():
+    handler = PostgreSQLHandler(
+        current_app.config['DB_CONFIG']
+    )
+
+    # Подключение к базе данных
+    if not handler.connect():
+        return jsonify({'error': 'Failed to connect to database'}), 500
+        
+    # Получаем данные из запроса
+    data = request.json
+
+    # Проверяем наличие обязательных полей
+    required_fields = ['user_id', 'friend_id']
+    missing_fields = [field for field in required_fields if field not in data]
+        
+    if missing_fields:
+        return jsonify({
+            'error': 'Missing required fields',
+            'fields': missing_fields
+        }), 400
+    
+    # Если все поля есть, продолжаем обработку
+    dict_fields = {req_field : data[req_field] for req_field in required_fields}
+    
+    # Загрузка данных в базу
+    if handler.load_data("app.friendship", data):
+        result = handler.execute_query('''
+            SELECT user_id, friend_id FROM app.friendship 
+            WHERE user_id = %s 
+            AND friend_id = %s
+            ''', (data['user_id'],data['friend_id']))
+        
+        return jsonify({
+            'message': 'Данные успешно получены!',
+            'result': result
+        }), 200
+    else:
+        return jsonify({'error': 'Failed to load data'}), 500
+
+
+    if hasattr(handler, 'connection'):
+        handler.close_connection()
+
+    return jsonify({
+        'message': 'Данные успешно получены',
+        'data': dict_fields
+    }), 200
+
+
+# Параметры: ?limit=20&offset=0
+# Эта операция позволит искать потенциальных друзей на основе различных критериев.
+@app.route("/friends/<int:userId>", methods=['GET'])
+def search_friends_user(userId):
+    handler = PostgreSQLHandler(
+        current_app.config['DB_CONFIG']
+    )
+
+    # Подключение к базе данных
+    if not handler.connect():
+        return jsonify({'error': 'Failed to connect to database'}), 500
+
+    # Получаем параметры запроса
+    limit = request.args.get('limit', None)
+    offset = request.args.get('offset', None)
+    limit_str = ''
+
+    if limit is not None:
+        # Формируем запрос
+        query = f"""
+            SELECT u.id as user_id, u.username
+            FROM app.users u 
+                INNER JOIN app.friendship f
+                ON u.id = f.friend_id 
+                AND f.user_id = {userId}
+            LIMIT {limit}
+        """
+    else:
+        # Формируем запрос
+        query = f"""
+            SELECT u.id as user_id, u.username
+            FROM app.users u 
+                INNER JOIN app.friendship f
+                ON u.id = f.friend_id 
+                AND f.user_id = {userId}
+        """
+
+    print(query)
+
+    try:
+        result = handler.execute_query(query=query)
+    except OperationalError as err:
+        return jsonify({
+            'error': 'Проблемы с поиском друзей в базе'
+        }), 500
+
+    if hasattr(handler, 'connection'):
+        handler.close_connection()
+
+    return jsonify({
+        'message': 'Данные успешно получены',
+        'data': result
+    }), 200
+
+
+# TO DO: доделать логику
+# {
+#   "country": "Canada",
+#   "city": "Toronto"
+# }
+@app.route("/users/<int:userId>", methods=['PATCH'])
+def update_user_info(userId):
+    handler = PostgreSQLHandler(
+        current_app.config['DB_CONFIG']
+    )
+
+    # Подключение к базе данных
+    if not handler.connect():
+        return jsonify({'error': 'Failed to connect to database'}), 500
+        
+    # Получаем данные из запроса
+    data = request.json
+
+    # Проверяем наличие обязательных полей
+    required_fields = ['username', 'email', 'password', 'country', 'city']
+    extra_fields = [field for field in data if field not in required_fields]
+        
+    if extra_fields:
+        return jsonify({
+            'error': 'Extra fields',
+            'fields': extra_fields
+        }), 400
+    
+
+    return jsonify({
+        'message': 'Данные успешно получены',
+        'data': data
+    }), 200
+
+# TO DO: доделать логику
+@app.route("/users/<int:userId>", methods=['DELETE'])
+def delete_user(userId):
+    ...
 
 if __name__ == "__main__":
     app.debug = True

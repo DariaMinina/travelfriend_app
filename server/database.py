@@ -144,6 +144,42 @@ class PostgreSQLHandler:
         
         return True
     
+    
+    def update_data(self, table_name, data, user_id):
+
+        update_columns = []
+        set_statements = []
+
+        for column, value in data.items():
+            update_columns.append(column)
+            set_statements.append(f'{column} = ?')
+
+        update_query = f"""
+        UPDATE {table_name}
+        SET {', '.join(set_statements)}
+        WHERE id = {user_id}
+        """
+
+        try:
+            with self.connection.cursor() as cursor:
+                
+                # Подставляем значения в запрос
+                for _, (column, value) in enumerate(data.items()):
+                    update_query = update_query.replace(column + ' = ?', f"{column} = '{value}'")
+    
+                cursor.execute(update_query)
+            
+            self.connection.commit()
+            print(f"Данные успешно загружены в таблицу {table_name}")
+            return True
+        except OperationalError as e:
+            print(f"Ошибка при загрузке данных: {str(e)}")
+            self.connection.rollback()
+            return False
+        
+        return True
+    
+
     def delete_user(self, table_name, user_id):
         
         query = f"""

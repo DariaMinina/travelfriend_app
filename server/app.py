@@ -240,7 +240,6 @@ def search_friends_user(userId):
     }), 200
 
 
-# TO DO: доделать логику
 # {
 #   "country": "Canada",
 #   "city": "Toronto"
@@ -267,6 +266,21 @@ def update_user_info(userId):
             'error': 'Extra fields',
             'fields': extra_fields
         }), 400
+    
+    try:
+        result = handler.update_data(table_name='app.users', data=data, user_id=userId)
+    except OperationalError as err:
+        return jsonify({
+            'error': 'Проблемы с обновлением данных'
+        }), 500
+
+    if hasattr(handler, 'connection'):
+        handler.close_connection()
+
+    return jsonify({
+        'message': 'Данные успешно обновлены',
+        'status': result
+    }), 200
     
 
     return jsonify({

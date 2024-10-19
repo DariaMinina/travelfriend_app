@@ -274,10 +274,24 @@ def update_user_info(userId):
         'data': data
     }), 200
 
-# TO DO: доделать логику
+
 @app.route("/users/<int:userId>", methods=['DELETE'])
 def delete_user(userId):
-    ...
+    handler = PostgreSQLHandler(
+        current_app.config['DB_CONFIG']
+    )
+
+    # Подключение к базе данных
+    if not handler.connect():
+        return jsonify({'error': 'Failed to connect to database'}), 500
+    
+    # Загрузка данных в базу
+    if handler.delete_user("app.users", userId) is False:
+        return jsonify({'error': 'Failed to load data'}), 500
+
+    return jsonify({
+            'message': f'Пользователь {userId} успешно удален!'
+        }), 200
 
 if __name__ == "__main__":
     app.debug = True

@@ -143,3 +143,23 @@ class PostgreSQLHandler:
             return False
         
         return True
+    
+    def delete_user(self, table_name, user_id):
+        
+        query = f"""
+        DELETE FROM {table_name}
+        WHERE id = {user_id}
+        """
+        
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(query)
+            self.connection.commit()
+            print(f"Пользователь успешно удален из таблицы {table_name}")
+            return True
+        except OperationalError as e:
+            print(f"Ошибка при загрузке данных: {str(e)}")
+            self.connection.rollback()
+            return False
+        
+        return True

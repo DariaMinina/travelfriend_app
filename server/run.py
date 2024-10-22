@@ -1,4 +1,5 @@
-from app.app import create_app
+from app.create_app import create_app
+from app.config import Config
 
 app, db = create_app()
 

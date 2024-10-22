@@ -13,4 +13,4 @@ source $VENV_NAME/bin/activate
 pip install -r requirements.txt
 
 # Запускаем скрипт app.py
-python app.py
+python run.py

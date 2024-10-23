@@ -23,6 +23,7 @@ jobs:
 
       - name: Run tests
         run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
           echo $(ls)
           npm run test:unit
           
@@ -41,5 +42,6 @@ jobs:
 
       - name: Build application
         run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
           echo $(ls)
           npm run build

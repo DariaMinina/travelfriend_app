@@ -9,18 +9,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install dependencies and modules
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
+          echo $(ls)
+          npm install
+
+      - name: Run tests
+        run: |
+          echo $(ls)
+          npm run test:unit
+          
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies and modules
+        run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
+          echo $(ls)
+          npm install
+
+      - name: Build application
+        run: |
+          echo $(ls)
+          npm run build

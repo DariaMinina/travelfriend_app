@@ -36,11 +36,11 @@ jobs:
 
     - name: Create .env file
       run: |
-        echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> .env
-        echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> .env
-        echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> .env
-        echo "UPLOAD_FOLDER=uploads" >> .env
-        echo "MAX_CONTENT_LENGTH=16777216" >> .env
+        echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> server/app/.env
+        echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> server/app/.env
+        echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
+        echo "UPLOAD_FOLDER=uploads" >> server/app/.env
+        echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
         
     - name: Run tests
       run: |

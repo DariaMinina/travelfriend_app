@@ -17,10 +17,6 @@ jobs:
           POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
           POSTGRES_USER: ${{ vars.POSTGRES_USER }}
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
-        options: >
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
         ports:
           - 5432:5432
         

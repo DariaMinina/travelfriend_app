@@ -19,6 +19,9 @@ def create_app(config_class=Config):
     db.init_app(app)
 
     app.app_context().push()
+
+    with app.app_context():
+        db.create_all()
     
     # Регистрация Blueprint
     from app.routes import bp

@@ -202,7 +202,6 @@ def update_user_info(userId):
         return jsonify({"error": str(e)}), 500
     
 
-# TO DO: исправить ошибку с внешними ключами
 @bp.route('/users/<int:userId>', methods=['DELETE'])
 def delete_user(userId):
     user = User.query.get(userId)

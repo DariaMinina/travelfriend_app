@@ -1,5 +1,5 @@
-from app.create_app import create_app
-from app.config import Config
+from server.app.create_app import create_app
+from server.app.config import Config
 
 app, db = create_app()
 

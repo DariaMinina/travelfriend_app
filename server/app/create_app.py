@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-from app.config import Config
+from server.app.config import Config
 
 
 
@@ -24,7 +24,7 @@ def create_app(config_class=Config):
         db.create_all()
     
     # Регистрация Blueprint
-    from app.routes import bp
+    from server.app.routes import bp
     app.register_blueprint(bp)
 
     return app, db

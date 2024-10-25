@@ -7,8 +7,8 @@ from flask import Flask, render_template, session, request, jsonify, current_app
 from psycopg2 import OperationalError
 
 
-from app.models import User, UserAttr, Friendship
-from app.create_app import db
+from server.app.models import User, UserAttr, Friendship
+from server.app.create_app import db
 
 bp = Blueprint('routes', __name__, url_prefix='/')
 

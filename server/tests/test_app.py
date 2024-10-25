@@ -1,8 +1,8 @@
 import pytest
 from flask import json
-from run import app, db
-from app import create_app
-from app.models import User, Friendship
+from server.run import app, db
+from server.app import create_app
+from server.app.models import User, Friendship
 
 
 @pytest.fixture

@@ -1,6 +1,7 @@
 import pytest
 from flask import json
-from server.run import app, db
+from server.run import app
+from server.run import db 
 from server.app import create_app
 from server.app.models import User, Friendship
 
@@ -14,6 +15,7 @@ def client():
 
 
 def test_create_user(client):
+    db.create_all()
     data = {
             'username': 'testuser',
             'email': 'test@example.com',
@@ -25,14 +27,14 @@ def test_create_user(client):
     # Отправка запроса на создание нового пользователя
     response = client.post('/users', json=data)
 
-    with client.application.app_context():
-        db.session.query(User).filter_by(username='testuser').delete()
-        db.session.commit()
-
     # Проверяем результат
     assert response.status_code == 201
     assert 'message' in response.json
     assert 'user_id' in response.json
+
+    with client.application.app_context():
+        db.session.query(User).filter_by(username='testuser').delete()
+        db.session.commit()
 
 
 def test_missing_required_field(client):

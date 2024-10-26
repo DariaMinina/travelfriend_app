@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения
 basedir = os.path.abspath(os.path.dirname(__file__))
 #load_dotenv(os.path.join(basedir, '.env'))
-load_dotenv('server/app/.env')
+load_dotenv()
 
 class Config:
     # Общие настройки

@@ -1,0 +1,1 @@
+from server.app.create_app import db

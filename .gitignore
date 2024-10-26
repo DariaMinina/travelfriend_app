@@ -28,3 +28,8 @@ client/*.sln
 client/*.sw?
 
 client/*.tsbuildinfo
+
+.venv/
+__pycache__/
+.env
+.pytest_cache/

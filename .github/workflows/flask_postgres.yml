@@ -49,6 +49,3 @@ jobs:
       run: |
         export $(cat server/app/.env | xargs)
         python -m pytest server/tests/
-
-    - name: Run Flask application
-      run: python server/run.py

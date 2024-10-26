@@ -23,6 +23,7 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.session.execute(text("CREATE SCHEMA IF NOT EXISTS app"))
+        db.session.commit()
         db.create_all()
     
     # Регистрация Blueprint

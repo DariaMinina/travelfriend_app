@@ -19,6 +19,7 @@ def client():
 def test_create_user(client):
     with client.application.app_context():
         db.session.execute(text("CREATE SCHEMA IF NOT EXISTS app"))
+        db.session.commit()
         db.create_all()
     data = {
             'username': 'testuser',

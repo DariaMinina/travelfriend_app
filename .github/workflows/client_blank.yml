@@ -1,0 +1,47 @@
+name: client_CI
+
+on:
+  push:
+    branches: [ "main", "feature/client" ]
+  pull_request:
+    branches: [ "main", "feature/client" ]
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies and modules
+        run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
+          echo $(ls)
+          npm install
+
+      - name: Run tests
+        run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
+          echo $(ls)
+          npm run test:unit
+          
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies and modules
+        run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
+          echo $(ls)
+          npm install
+
+      - name: Build application
+        run: |
+          cd /home/runner/work/travelfriend_app/travelfriend_app/client
+          echo $(ls)
+          npm run build

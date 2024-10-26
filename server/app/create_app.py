@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 
 from server.app.config import Config
 
@@ -21,6 +22,7 @@ def create_app(config_class=Config):
     app.app_context().push()
 
     with app.app_context():
+        db.session.execute(text("CREATE SCHEMA IF NOT EXISTS app"))
         db.create_all()
     
     # Регистрация Blueprint

@@ -1,5 +1,7 @@
 import pytest
 from flask import json
+from sqlalchemy import text
+
 from server.run import app
 from server.run import db 
 from server.app import create_app
@@ -15,7 +17,9 @@ def client():
 
 
 def test_create_user(client):
-    db.create_all()
+    with client.application.app_context():
+        db.session.execute(text("CREATE SCHEMA IF NOT EXISTS app"))
+        db.create_all()
     data = {
             'username': 'testuser',
             'email': 'test@example.com',

@@ -43,5 +43,9 @@ jobs:
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
         
     - name: Run tests
+      env:
+        FLASK_ENV: testing
+        FLASK_CONFIG: config.TestConfig
       run: |
+        export $(cat server/app/.env | xargs)
         python -m pytest server/tests/

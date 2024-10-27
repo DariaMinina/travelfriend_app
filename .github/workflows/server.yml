@@ -7,7 +7,7 @@ on:
     branches: [ "main", "feature/server" ]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     
     services:
@@ -49,3 +49,38 @@ jobs:
       run: |
         export $(cat server/app/.env | xargs)
         python -m pytest server/tests/
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14.8
+        env:
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r server/requirements.txt
+
+    - name: Create .env file
+      run: |
+        echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> server/app/.env
+        echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> server/app/.env
+        echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
+        echo "UPLOAD_FOLDER=uploads" >> server/app/.env
+        echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env

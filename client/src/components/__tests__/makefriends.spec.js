@@ -24,7 +24,7 @@ describe('makefriends', () => {
 
 
 export const restHandlers = [
-http.get('http://localhost:5001/friends/search', () => {
+http.get('http://127.0.0.1:5015/friends/search', () => {
 
   return new HttpResponse(JSON.stringify([
       {

@@ -327,8 +327,7 @@
           <thead>
             <tr>
               <th scope="col">Name</th>
-              <th scope="col">Email</th>
-              <th scope="col">Country</th>
+              <th scope="col">Interests</th>
               <th scope="col">City</th>
               <th scope="col">Become friends</th>
             </tr>
@@ -336,8 +335,7 @@
           <tbody>
             <tr v-for="(potential_friend, index) in potential_friends" :key="index">
               <td>{{ potential_friend.username }}</td>
-              <td>{{ potential_friend.email }}</td>
-              <td>{{ potential_friend.country }}</td>
+              <td>{{ potential_friend.interests }}</td>
               <td>{{ potential_friend.city }}</td>
               <td><button
           	type="button"
@@ -366,11 +364,11 @@ import axios from 'axios';
 
 class PotentialFriend{
  
-  constructor(user_id, username, email, country, city, initiatorUserId) {
+  constructor(user_id, username, interests, city, initiatorUserId, conn_addr_string) {
+    this.conn_addr_string = conn_addr_string,
     this.user_id = user_id;
     this.username = username;
-    this.email = email;
-    this.country = country;
+    this.interests = interests;
     this.city = city;
     this.initiatorUserId = initiatorUserId;
   }
@@ -380,11 +378,12 @@ class PotentialFriend{
     
     if(isNaN(parseInt(this.initiatorUserId)) == false)
     {
-	const path = 'http://localhost:5001/friendships';
+	const path = this.conn_addr_string + '/friendships';
         
         const payload = { user_id: parseInt(this.initiatorUserId), friend_id: this.user_id };
 	axios.post(path, payload)
           .then((res) => {
+            alert(res.data['message']);
           })
           .catch((error) => {
             console.log(error);
@@ -398,6 +397,8 @@ export default {
   name: 'makefriends',
   data() {
     return {
+      conn_addr_string: 'http://127.0.0.1:5015',
+      
       currentUserId: 'Not registered',
       activeAddUserModal: false,
       activeUpdateUserModal: false,
@@ -441,7 +442,7 @@ export default {
   methods: {
     // add user
     addUser(payload) {
-      const path = 'http://localhost:5001/users';
+      const path = this.conn_addr_string + '/users';
       
       this.UserData.username = this.AddUserFormData.username;
       this.UserData.email = this.AddUserFormData.email;
@@ -451,7 +452,9 @@ export default {
       
       axios.post(path, payload)
         .then((res) => {
-          this.currentUserId = res.data['id'];
+          console.log(res);
+          this.currentUserId = res.data['user_id'];
+          alert(res.data['message']);
         })
         .catch((error) => {
           console.log(error);
@@ -498,7 +501,7 @@ export default {
     
     if(isNaN(parseInt(this.currentUserId)) == false)
     {
-        const path = `http://localhost:5001/users/${parseInt(this.currentUserId)}`;
+        const path = this.conn_addr_string + `/users/${parseInt(this.currentUserId)}`;
         
         if (this.UpdateUserFormData.username != '') {
         	this.UserData.username  = this.UpdateUserFormData.username;
@@ -515,9 +518,10 @@ export default {
       	if (this.UpdateUserFormData.city != '') {
         	this.UserData.city = this.UpdateUserFormData.city;
       	}
-        
+                
       	axios.patch(path, payload)
         	.then((res) => {
+        	alert(res.data['message']);
         	})
         	.catch((error) => {
           	console.log(error);
@@ -573,10 +577,11 @@ export default {
     getListOfUserFriends() {
     if(isNaN(parseInt(this.currentUserId)) == false)
       {
-        const path = `http://localhost:5001/friends/${parseInt(this.currentUserId)}`;
+        const path = this.conn_addr_string + `/friends/${parseInt(this.currentUserId)}`;
         axios.get(path, { params: { limit: 20, offset: 0 } })
           .then((res) => {
-            this.friends = res.data;
+            console.log(res);
+            this.friends = res.data['data'];
           })
           .catch((error) => {
             console.log(error);
@@ -597,20 +602,21 @@ export default {
     
     // find friends
     getPotentialFriends() {
-        const path = 'http://localhost:5001/friends/search';
+        const path = this.conn_addr_string + '/friends/search';
         axios.get(path, { params: { country: this.FindingFriendsCriterias.country, interests: this.FindingFriendsCriterias.interests } })
           .then((res) => {
-            //console.log(res);
-            
-            var length = res.data.length,
-    	    element = null;
+            console.log(res);
+            //console.log(res.data['data']);
+            //console.log(res.data['data'].length);
+            var length = res.data['data'].length;
+    	    var element = null;
     
 	    this.potential_friends = [];
     
             for (var i = 0; i < length; i++) {
-  		element = res.data[i];
-  		//console.log(element);
-  		this.potential_friends.push(new PotentialFriend(element['user_id'], element['username'], element['email'], element['country'], element['city'], this.currentUserId));
+  		element = res.data['data'][i];
+  		console.log(element);
+  		this.potential_friends.push(new PotentialFriend(element['id'], element['username'], element['interests'], element['city'], this.currentUserId, this.conn_addr_string));
 	    }
 	    console.log(this.potential_friends);
           })
@@ -633,7 +639,7 @@ export default {
     deleteUser() {
       if(isNaN(parseInt(this.currentUserId)) == false)
       {
-        const path = `http://localhost:5001/users/${parseInt(this.currentUserId)}`;
+        const path = this.conn_addr_string + `/users/${parseInt(this.currentUserId)}`;
         axios.delete(path)
           .then((res) => {
             this.currentUserId = 'Not registered';
@@ -642,6 +648,8 @@ export default {
             this.UserData.password = '';
             this.UserData.country = '';
             this.UserData.city = '';
+            
+            alert(res.data['message']);
           })
           .catch((error) => {
             console.log(error);

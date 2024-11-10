@@ -83,14 +83,14 @@ def search_friends():
 
     # Формируем запрос
     query = f"""
-        SELECT u.username, u.city, STRING_AGG(ua.interest, ', ') as interests
+        SELECT u.id, u.username, u.city, STRING_AGG(ua.interest, ', ') as interests
         FROM app.users u 
             INNER JOIN app.user_attr ua 
             ON u.id = ua.user_id 
         WHERE 1 = 1 
         {interests_conditions}
         {country_conditions}
-        GROUP BY u.username, u.city 
+        GROUP BY u.id, u.username, u.city 
     """
     
     sql = text(query)    
@@ -133,6 +133,8 @@ def add_friendship():
     # Создаем новую запись Friendship
     friendship = Friendship(user_id=user_id, friend_id=friend_id)
     db.session.add(friendship)
+    friendship = Friendship(user_id=friend_id, friend_id=user_id)
+    db.session.add(friendship)
     
     try:
         db.session.commit()
@@ -143,7 +145,7 @@ def add_friendship():
 
 
 # Параметры: ?limit=20&offset=0
-# Эта операция позволит искать потенциальных друзей на основе различных критериев.
+# Эта операция позволит отображать текущий список друзей пользователя.
 @bp.route("/friends/<int:userId>", methods=['GET'])
 def search_friends_user(userId):
     # Проверяем существование пользователя
@@ -161,7 +163,10 @@ def search_friends_user(userId):
     friends = [
         {
             'user_id': User.query.get(friend_id).id,
-            'username': User.query.get(friend_id).username
+            'username': User.query.get(friend_id).username,
+            'email': User.query.get(friend_id).email,
+            'country': User.query.get(friend_id).country,
+            'city': User.query.get(friend_id).city
         } for friend_id in [friendship.friend_id for friendship in friendships]
     ]
 

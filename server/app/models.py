@@ -31,12 +31,13 @@ class Friendship(db.Model):
     __table_args__ = {
         "schema":"app"
     }
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(
         db.Integer,
+        primary_key=True,
         nullable=False
     )
     friend_id = db.Column(
         db.Integer,
+        primary_key=True,
         nullable=False
     )

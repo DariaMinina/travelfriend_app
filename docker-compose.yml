@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14.8
+    environment:
+      POSTGRES_DB: "travel_app"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "root"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+          
+  server:
+    image: vadksen01/server-app
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://root:root@postgres:5432/travel_app"
+    ports:
+      - "5015:5015"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      
+  client:
+    image: vadksen01/client-app
+    ports:
+      - "3000:3000"

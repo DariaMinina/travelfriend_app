@@ -9,6 +9,7 @@ from server.app.config import Config
 
 db = SQLAlchemy()
 
+from server.app.models import User, Friendship, UserAttr
 
 def create_app(config_class=Config):
     app = Flask(__name__)

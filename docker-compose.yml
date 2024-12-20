@@ -21,6 +21,7 @@ services:
     image: vadksen01/server-app
     environment:
       DATABASE_URL: "postgresql+psycopg2://root:root@postgres:5432/travel_app"
+      SERVER_NAME: 127.0.0.1:5015
     ports:
       - "5015:5015"
     depends_on:
@@ -29,5 +30,7 @@ services:
       
   client:
     image: vadksen01/client-app
+    environment:
+      VITE_SERVER_CONNECT_STRING : "http://127.0.0.1:5015"
     ports:
       - "3000:3000"

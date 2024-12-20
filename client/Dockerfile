@@ -8,6 +8,8 @@ COPY --exclude=*node_modules* . /app
 RUN npm install
 RUN npm install -g serve
 
+ENV VITE_SERVER_CONNECT_STRING="http://127.0.0.1:5015"
+
 RUN npm run build
 
 EXPOSE 5015

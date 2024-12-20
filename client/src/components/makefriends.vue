@@ -397,7 +397,7 @@ export default {
   name: 'makefriends',
   data() {
     return {
-      conn_addr_string: 'http://127.0.0.1:5015',
+      conn_addr_string : import.meta.env.VITE_SERVER_CONNECT_STRING,
       
       currentUserId: 'Not registered',
       activeAddUserModal: false,

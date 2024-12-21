@@ -487,6 +487,8 @@ export default {
       this.AddUserFormData.city = '';
     },
     toggleAddUserModal() {
+      console.log(this.conn_addr_string);
+    
       const body = document.querySelector('body');
       this.activeAddUserModal = !this.activeAddUserModal;
       if (this.activeAddUserModal) {

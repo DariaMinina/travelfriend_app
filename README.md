@@ -163,5 +163,41 @@ docker push vadksen01/server-app
 Аналогично с образом клиента ``vadksen01/client-app``.
 
 
+## Как поднять SonarQube в Kubernetes?
+
+1. Во-первых, нужно настроить kubectl.
+2. Устанавливаем себе локально helm.
+3. `kubectl create namespace sonarqube`
+4. `helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube`
+5. `helm repo update`
+6. `helm install --namespace sonarqube sonarqube -f sonarqube-values.yaml sonarqube/sonarqube`
+   + Если нужно будет обновить: `helm upgrade -f sonarqube-values.yaml -n sonarqube sonarqube sonarqube/sonarqube`
+7. Для подключения лучше всего настроить публичный IP. Но можно и пробросить порт: `kubectl port-forward sonarqube-sonarqube-0 9000:9000 -n sonarqube --address '0.0.0.0'`
+   + Узнать имя pod'a: `kubectl get pods -n sonarqube -l "app=sonarqube,release=sonarqube" -o jsonpath="{.items[0].metadata.name}"`
+   + Чтобы узнать `CLUSTER-IP`: `kubectl get csv -n sonarqube`.
+8. Генерируем Token для доступа:
+   + Переходим в SonarQube `http://localhost:9000`.
+   + `User` -> `My Account` -> `Security` -> Создаем токен и сохраняем.
+9.  Ещё ~~полезно~~ будет отключить `Coverage`, чтобы анализ не выдавал ошибку, т.к. по дефолту он требует 80% тестового покрытия кода:
+      + Переходим в SonarQube `http://localhost:9000`.
+      + `Administration` -> `Analysos Scope` -> `Coverage Exclusions`.
+      + Прописываем в `values`: `**/*.*`
+10. Пример переменной `SONAR_HOST_URL`: `http://10.95.145.10:9000`.
+
+P.S.: Главное пофиксить все ошибки, которые вам выдавал SonarQube, иначе будет кидать status: `Failed`.  
+  
+
+## Как настроить CI/CD?
+1. Достаем переменные окружения и сохраняем на GitLab в репозитории `Settings` -> `CI/CD` -> `Variables` (отключаем **Protected** и включаем **Masked**):
+   + K8S_BASE_URL: `kubectl config view --minify -o jsonpath='.clusters[0].cluster.server'`
+   + K8S_CA_DATA: `kuberctl config view --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}'`
+   + K8S_USER_TOKEN: `kubectl create token default`
+2. Дальше настраиваем ваши `.yml` файлы для кубера, пример у меня в [./deployment](./deployment). Ну и как в 3 ЛР: `kubectl apply -f {FILE_NAME}.yml`
+3. Настраиваем workflow в Github Actions.
+4. После этого все должно автоматически тестировать, билдиться, анализироваться, пушить образы и деплоить.
+
+
+
+
 
 

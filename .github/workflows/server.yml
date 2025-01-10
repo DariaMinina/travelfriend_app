@@ -63,10 +63,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up SonarQube
-        uses: sonarsource/sonar-scanner-cli@master
+        uses: sonarsource/sonar-scanner-action@master
       - name: Run SonarQube analysis
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           SONAR_USER_HOME: "${{ github.workspace }}/agent/sonar"
         run: |
           sonar-scanner \

@@ -49,6 +49,15 @@ jobs:
       run: |
         export $(cat server/app/.env | xargs)
         python -m pytest server/tests/
+
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      with:
+        args: -X ms.clone-depth:0
+        
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -84,3 +93,11 @@ jobs:
         echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
         echo "UPLOAD_FOLDER=uploads" >> server/app/.env
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
+
+    - name: SonarQube Quality Gate Check
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      with:
+        args: -X ms.clone-depth:0

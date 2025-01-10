@@ -62,9 +62,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Set up SonarQube
-        uses: sonarsource/sonar-scanner-action@master
+        uses: sonarsource/sonar-scanner-cli@master
       - name: Run SonarQube analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,7 +109,7 @@ jobs:
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
 
     - name: SonarQube Quality Gate Check
-      uses: sonarsource/sonarqube-scan-action@master
+      uses: sonarsource/sonar-scanner-cli@master
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

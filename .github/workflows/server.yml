@@ -48,7 +48,7 @@ jobs:
         FLASK_CONFIG: config.TestConfig
       run: |
         export $(cat server/app/.env | xargs)
-        python -m pytest server/tests/ --cov=server --cov-report=xml
+        python -m pytest server/tests/
 
     - name: SonarQube Scan
       uses: sonarsource/sonarqube-scan-action@master

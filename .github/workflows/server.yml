@@ -41,23 +41,38 @@ jobs:
         echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
         echo "UPLOAD_FOLDER=uploads" >> server/app/.env
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
-        
-    - name: Run tests and generate coverage report
+    - name: Run tests
       env:
         FLASK_ENV: testing
         FLASK_CONFIG: config.TestConfig
-      run: |
-        export $(cat server/app/.env | xargs)
-        python -m pytest server/tests/
-
-    - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@master
-      env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      run: |
+        export $(cat server/app/.env | xargs)
+        coverage run -m pytest server/tests/
+    - name: Generate coverage report
+      run: coverage xml -o reportPythonTest.xml
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
       with:
-        args: -X ms.clone-depth:0
+        name: reportPythonTest
+        path: reportPythonTest.xml
         
+  sonarqube-validate-job:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up SonarQube
+        uses: sonarsource/sonar-scanner-action@master
+      - name: Run SonarQube analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_USER_HOME: "${{ github.workspace }}/agent/sonar"
+        run: |
+          sonar-scanner \
+            -Dsonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            -Dsonar.login="${{ secrets.SONAR_TOKEN }}"  
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -99,5 +114,3 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      with:
-        args: -X ms.clone-depth:0

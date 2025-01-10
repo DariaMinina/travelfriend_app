@@ -1,0 +1,12 @@
+readinessProbe:
+  initialDelaySeconds: 300
+startupProbe:
+  initialDelaySeconds: 240
+resources:
+  requests:
+    cpu: 200m
+    memory: 1024M
+service:
+  type: NodePort  # Или NodePort, если LoadBalancer недоступен
+  port: 9000
+  nodePort: 30007

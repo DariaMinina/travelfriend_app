@@ -112,6 +112,7 @@ jobs:
         echo "UPLOAD_FOLDER=uploads" >> server/app/.env
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
   push:
+    needs: build 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -141,6 +142,7 @@ jobs:
           tags: vadksen01/server-app:latest
           annotations: ${{ steps.meta.outputs.annotations }}
   deploy:
+    needs: push 
     runs-on: ubuntu-latest
     steps:
       - name: Install And Set up yc-cli

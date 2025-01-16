@@ -1,4 +1,4 @@
-name: server_CI
+name: server_deploy
 
 on:
   push:

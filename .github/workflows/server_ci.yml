@@ -139,16 +139,21 @@ jobs:
     needs: push 
     runs-on: ubuntu-latest
     steps:
+      - name: Install And Set up yc-cli
       - name: Install kubectl
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-      
-      - name: Configure kubectl
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          printf ${{ secrets.YC_TOKEN }}'\n2\nn\n' | ~/yandex-cloud/bin/yc init
+          ~/yandex-cloud/bin/yc vpc address list
+      - name: Install And Set up kubectl
+        env:
+          K8S_BASE_URL: ${{ secrets.K8S_BASE_URL }}
+          K8S_CA_DATA: ${{ secrets.K8S_CA_DATA }}
+          K8S_USER_TOKEN: ${{ secrets.K8S_USER_TOKEN }}
         run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-      
-      - name: Restart deployment
+          curl -LO https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl
+          export K8S_BASE_URL=$K8S_BASE_URL && export K8S_CA_DATA=$K8S_CA_DATA && export K8S_USER_TOKEN=$K8S_USER_TOKEN
+      - name: Restart server deployment
         run: kubectl rollout restart deployment server

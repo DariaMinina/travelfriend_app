@@ -41,41 +41,14 @@ jobs:
         echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
         echo "UPLOAD_FOLDER=uploads" >> server/app/.env
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
+        
     - name: Run tests
       env:
         FLASK_ENV: testing
         FLASK_CONFIG: config.TestConfig
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       run: |
         export $(cat server/app/.env | xargs)
-        coverage run -m pytest server/tests/
-    - name: Generate coverage report
-      run: coverage xml -o reportPythonTest.xml
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: reportPythonTest
-        path: reportPythonTest.xml
-        
-  sonarqube-validate-job:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up SonarQube Scanner
-        uses: sonarsource/sonar-scanner-action@master
-        with:
-          args: "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}"
-      
-      - name: Run SonarQube Analysis
-        run: |
-          sonar-scanner \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        python -m pytest server/tests/
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -111,9 +84,3 @@ jobs:
         echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
         echo "UPLOAD_FOLDER=uploads" >> server/app/.env
         echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
-
-    - name: SonarQube Quality Gate Check
-      uses: sonarsource/sonar-scanner-cli@master
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

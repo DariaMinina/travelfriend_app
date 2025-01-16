@@ -139,7 +139,6 @@ jobs:
     needs: push 
     runs-on: ubuntu-latest
     steps:
-      - name: Install And Set up yc-cli
       - name: Install kubectl
         run: |
           sudo apt-get update

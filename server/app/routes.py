@@ -130,12 +130,8 @@ def add_friendship():
     friendship = Friendship(user_id=friend_id, friend_id=user_id)
     db.session.add(friendship)
     
-    try:
-        db.session.commit()
-        return jsonify({"message": "Запрос на дружбу создан"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+    db.session.commit()
+    return jsonify({"message": "Запрос на дружбу создан"}), 201
 
 
 # Параметры: ?limit=20&offset=0
@@ -193,24 +189,5 @@ def update_user_info(userId):
         if hasattr(user, key) and key != 'id':
             setattr(user, key, value)
 
-    try:
-        db.session.commit()
-        return jsonify({"message": "Пользователь успешно обновлен"}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-    
-
-@bp.route('/users/<int:userId>', methods=['DELETE'])
-def delete_user(userId):
-    user = User.query.get(userId)
-    if not user:
-        return jsonify({"error": "Пользователь не найден"}), 404
-
-    try:
-        db.session.delete(user)
-        db.session.commit()
-        return jsonify({"message": "Пользователь успешно удален"}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+    db.session.commit()
+    return jsonify({"message": "Пользователь успешно обновлен"}), 200

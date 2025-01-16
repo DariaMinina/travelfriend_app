@@ -8,7 +8,7 @@
           type="button"
           class="btn btn-success btn-sm"
           @click="toggleAddUserModal">
-          Add1 User
+          Add User
         </button>
         <br><br>
         <button

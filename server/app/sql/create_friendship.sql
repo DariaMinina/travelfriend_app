@@ -6,4 +6,3 @@ CREATE TABLE app.friendship (
 
 ALTER TABLE app.friendship ADD CONSTRAINT friendship_users_fk FOREIGN KEY (user_id) REFERENCES app.users(id) ON UPDATE CASCADE;
 ALTER TABLE app.friendship ADD CONSTRAINT friendship_users_fk_1 FOREIGN KEY (friend_id) REFERENCES app.users(id) ON UPDATE CASCADE;
-

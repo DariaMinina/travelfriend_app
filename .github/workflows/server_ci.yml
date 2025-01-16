@@ -155,6 +155,16 @@ jobs:
 
       - name: Install And Set up kubectl
         run: |
+          yc iam key create \
+            --service-account-id ${{ secrets.YC_SERVICE_ACCOUNT_ID }} \
+            --folder-name ${{ secrets.YC_FOLDER_NAME }} \
+            --output key.json
+          yc config set service-account-key key.json
+          yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
+          yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+          export YC_TOKEN=$(yc iam create-token)
+          export YC_CLOUD_ID=$(yc config get cloud-id)
+          export YC_FOLDER_ID=$(yc config get folder-id)
           curl -LO https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl
           sudo chmod +x ./kubectl
           mv ./kubectl /usr/local/bin/kubectl

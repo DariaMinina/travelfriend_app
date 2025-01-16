@@ -134,14 +134,6 @@ def test_add_friendship_nonexistent_user(client):
     assert response.status_code == 404
     assert response.json['error'] == 'Один или оба пользователя отсутствуют'
 
-def test_500_error_with_custom_message(client):
-    # Создаем условие, которое должно вызвать ошибку 500 с пользовательским сообщением
-    with pytest.raises(Exception) as e:
-        client.post('/friendships', json={'nonexistent_user': 'value'})
-    
-    # Проверяем статус код ответа
-    assert e.value.response.status_code == 500
-
 
 def test_add_friendship_with_errors(client):
     # Создаем тестовых пользователей

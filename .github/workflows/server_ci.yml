@@ -154,6 +154,6 @@ jobs:
           K8S_USER_TOKEN: ${{ secrets.K8S_USER_TOKEN }}
       run: |
         kubectl --server=$K8S_BASE_URL \
-                --certificate-authority=<(echo "$K8S_CA_DATA" | base64 --decode) \
+                --insecure-skip-tls-verify \
                 --token=$K8S_USER_TOKEN \
                 rollout restart deployment server

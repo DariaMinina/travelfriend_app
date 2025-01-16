@@ -3,7 +3,7 @@ name: server_CI
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - server/**
 

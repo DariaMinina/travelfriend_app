@@ -20,58 +20,56 @@ jobs:
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
         ports:
           - 5432:5432
-        
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install sonar-scanner
+        run: |
+          SONAR_SCANNER_VERSION=5.0.1.3006 
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+          unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+          echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
       
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
         
-    - name: Install dependencies
-      run: |
+      - name: Install dependencies
+        run: |
           python -m pip install --upgrade pip
           pip install -r server/requirements.txt
           pip install pytest coverage
 
-    - name: Create .env file
-      run: |
-        echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> server/app/.env
-        echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> server/app/.env
-        echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
-        echo "UPLOAD_FOLDER=uploads" >> server/app/.env
-        echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
+      - name: Create .env file
+        run: |
+          echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> server/app/.env
+          echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> server/app/.env
+          echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
+          echo "UPLOAD_FOLDER=uploads" >> server/app/.env
+          echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
         
-    - name: Run tests
-      env:
-        FLASK_ENV: testing
-        FLASK_CONFIG: config.TestConfig
-      run: |
-        export $(cat server/app/.env | xargs)
-        coverage run -m pytest server/tests/
-        coverage xml
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Run tests and generate coverage
+        env:
+          FLASK_ENV: testing
+          FLASK_CONFIG: config.TestConfig
+        run: |
+          export $(cat server/app/.env | xargs)
+          coverage run -m pytest server/tests/
+          coverage xml
 
-    - name: Install sonar-scanner
-      run: |
-        SONAR_SCANNER_VERSION=5.0.1.3006 
-        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-        unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-        echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
-
-    - name: Run sonar-scanner
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Токен из SonarQube
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      run: |
-        sonar-scanner \
-          -Dsonar.sources=server/ \
-          -Dsonar.host.url=$SONAR_HOST_URL \
-          -Dsonar.login=$SONAR_TOKEN \
-          -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
+      - name: Run sonar-scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Токен из SonarQube
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          sonar-scanner \
+            -Dsonar.sources=server/ \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
   build:
     needs: test-and-analyze
     runs-on: ubuntu-latest

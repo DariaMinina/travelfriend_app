@@ -1,0 +1,164 @@
+name: server_CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - server/**
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14.8
+        env:
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+          python -m pip install --upgrade pip
+          pip install -r server/requirements.txt
+          pip install pytest coverage
+
+    - name: Create .env file
+      run: |
+        echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> server/app/.env
+        echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> server/app/.env
+        echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
+        echo "UPLOAD_FOLDER=uploads" >> server/app/.env
+        echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
+        
+    - name: Run tests
+      env:
+        FLASK_ENV: testing
+        FLASK_CONFIG: config.TestConfig
+      run: |
+        export $(cat server/app/.env | xargs)
+        coverage run -m pytest server/tests/
+        coverage xml
+  sonarqube-validation:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install sonar-scanner
+        run: |
+          SONAR_SCANNER_VERSION=5.0.1.3006 
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+          unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+          echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
+
+      - name: Run sonar-scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Токен из SonarQube
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          sonar-scanner \
+            -Dsonar.sources=server/ \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
+  build:
+    needs: sonarqube-validation
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14.8
+        env:
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r server/requirements.txt
+
+    - name: Create .env file
+      run: |
+        echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" >> server/app/.env
+        echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> server/app/.env
+        echo "SERVER_NAME=${{ vars.SERVER_NAME }}" >> server/app/.env
+        echo "UPLOAD_FOLDER=uploads" >> server/app/.env
+        echo "MAX_CONTENT_LENGTH=16777216" >> server/app/.env
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Extract Docker image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.DOCKER_USERNAME }}/server-app
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: server/
+          file: server/Dockerfile
+          push: true
+          tags: vadksen01/server-app:latest
+          annotations: ${{ steps.meta.outputs.annotations }}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install And Set up yc-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          printf ${{ secrets.YC_TOKEN }}'\n2\nn\n' | ~/yandex-cloud/bin/yc init
+          ~/yandex-cloud/bin/yc vpc address list
+
+      - name: Install And Set up kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl
+          sudo chmod +x ./kubectl
+          mv ./kubectl /usr/local/bin/kubectl
+          kubectl version --client
+          ~/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials --id ${{ secrets.YC_CLUSTER_ID }} --external --force
+
+      - name: Restart server deployment
+        run: |
+          kubectl rollout restart deployment server

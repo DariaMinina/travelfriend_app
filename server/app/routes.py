@@ -12,12 +12,6 @@ from server.app.create_app import db
 
 bp = Blueprint('routes', __name__, url_prefix='/')
 
-@bp.route('/')
-def index():
-    return jsonify({
-        'message': 'Welcome to the app!'
-    }), 200
-
 
 # {
 #   "username": "john_doe",

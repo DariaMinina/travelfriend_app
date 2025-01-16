@@ -73,11 +73,10 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_PROJECT_KEY: DariaMinina_travelfriend_app_77a0c3d5-e569-41b6-b20b-ccd4428396b7
         run: |
-          curl -u ${{ secrets.SONAR_TOKEN }}: \
-               -X GET "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY" \
-               -o qualitygate.json
-          result=$(grep '"status": "ERROR"' qualitygate.json)
-          if [ -n "$result" ]; then
+          response=$(curl -u $SONAR_TOKEN: \
+          -X GET "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY")
+          projectstatus=$(echo "$response" | jq -r '.projectStatus.status')
+          if [ "$projectstatus" = "ERROR" ]; then
             echo "Quality Gate failed!"
             exit 1
           else 

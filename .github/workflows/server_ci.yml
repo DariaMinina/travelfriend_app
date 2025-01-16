@@ -153,7 +153,7 @@ jobs:
           K8S_CA_DATA: ${{ secrets.K8S_CA_DATA }}
           K8S_USER_TOKEN: ${{ secrets.K8S_USER_TOKEN }}
       run: |
-        kubectl --server=$K8S_BASE_URL:6443 \
+        kubectl --server=$K8S_BASE_URL \
                 --certificate-authority=<(echo "$K8S_CA_DATA" | base64 --decode) \
                 --token=$K8S_USER_TOKEN \
                 rollout restart deployment server

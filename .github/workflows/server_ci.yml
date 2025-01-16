@@ -135,25 +135,23 @@ jobs:
           push: true
           tags: vadksen01/server-app:latest
           annotations: ${{ steps.meta.outputs.annotations }}
-  deploy:
-    needs: push 
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Install kubectl
-      run: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
+      
+      - name: Install And Set up yc-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          printf ${{ secrets.YC_TOKEN }}'\n2\nn\n' | ~/yandex-cloud/bin/yc init
+          ~/yandex-cloud/bin/yc vpc address list
 
-    - name: Restart deployment
-      env:
-          K8S_BASE_URL: ${{ secrets.K8S_BASE_URL }}
-          K8S_CA_DATA: ${{ secrets.K8S_CA_DATA }}
-          K8S_USER_TOKEN: ${{ secrets.K8S_USER_TOKEN }}
-      run: |
-        kubectl --server=$K8S_BASE_URL \
-                --insecure-skip-tls-verify \
-                --token=$K8S_USER_TOKEN \
-                rollout restart deployment server
+      - name: Install And Set up kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl
+          sudo chmod +x ./kubectl
+          mv ./kubectl /usr/local/bin/kubectl
+          kubectl version --client
+          ~/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials --id ${{ secrets.YC_CLUSTER_ID }} --external --force
+
+      - name: Restart server deployment
+        run: |
+          kubectl rollout restart deployment server

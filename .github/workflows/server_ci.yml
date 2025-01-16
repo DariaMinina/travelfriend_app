@@ -8,7 +8,7 @@ on:
       - server/**
 
 jobs:
-  test:
+  test-and-analyze:
     runs-on: ubuntu-latest
     
     services:
@@ -52,32 +52,28 @@ jobs:
         export $(cat server/app/.env | xargs)
         coverage run -m pytest server/tests/
         coverage xml
-  sonarqube-validation:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Install sonar-scanner
-        run: |
-          SONAR_SCANNER_VERSION=5.0.1.3006 
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-          unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-          echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
+    - name: Install sonar-scanner
+      run: |
+        SONAR_SCANNER_VERSION=5.0.1.3006 
+        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+        unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+        echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
 
-      - name: Run sonar-scanner
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Токен из SonarQube
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          sonar-scanner \
-            -Dsonar.sources=server/ \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
+    - name: Run sonar-scanner
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Токен из SonarQube
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      run: |
+        sonar-scanner \
+          -Dsonar.sources=server/ \
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
   build:
-    needs: sonarqube-validation
+    needs: test-and-analyze
     runs-on: ubuntu-latest
     
     services:
@@ -154,22 +150,16 @@ jobs:
           ~/yandex-cloud/bin/yc vpc address list
 
       - name: Install And Set up kubectl
+        env:
+          K8S_BASE_URL: ${{ secrets.K8S_BASE_URL }}
+          K8S_CA_DATA: ${{ secrets.K8S_CA_DATA }}
+          K8S_USER_TOKEN: ${{ secrets.K8S_USER_TOKEN }}
         run: |
-          yc iam key create \
-            --service-account-id ${{ secrets.YC_SERVICE_ACCOUNT_ID }} \
-            --folder-name ${{ secrets.YC_FOLDER_NAME }} \
-            --output key.json
-          yc config set service-account-key key.json
-          yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
-          yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
-          export YC_TOKEN=$(yc iam create-token)
-          export YC_CLOUD_ID=$(yc config get cloud-id)
-          export YC_FOLDER_ID=$(yc config get folder-id)
           curl -LO https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl
           sudo chmod +x ./kubectl
           mv ./kubectl /usr/local/bin/kubectl
           kubectl version --client
-          ~/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials --id ${{ secrets.YC_CLUSTER_ID }} --external --force
+          export K8S_BASE_URL=$K8S_BASE_URL && export K8S_CA_DATA=$K8S_CA_DATA && export K8S_USER_TOKEN=$K8S_USER_TOKEN
 
       - name: Restart server deployment
         run: |

@@ -82,3 +82,61 @@ jobs:
           cd /home/runner/work/travelfriend_app/travelfriend_app/client
           echo $(ls)
           npm run build
+          
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Extract Docker image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.DOCKER_USERNAME }}/server-app
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: server/
+          file: server/Dockerfile
+          push: true
+          tags: vadksen01/server-app:latest
+          annotations: ${{ steps.meta.outputs.annotations }}
+          
+  deploy:
+    needs: push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install And Set up yc-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          printf ${{ secrets.YC_TOKEN }}'\n2\nn\n' | ~/yandex-cloud/bin/yc init
+          ~/yandex-cloud/bin/yc vpc address list
+
+      - name: Install And Set up kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl
+          sudo chmod +x ./kubectl
+          mv ./kubectl /usr/local/bin/kubectl
+          kubectl version --client
+          ~/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials --id ${{ secrets.YC_CLUSTER_ID }} --external --force
+
+      - name: Restart server deployment
+        run: |
+          kubectl rollout restart deployment server

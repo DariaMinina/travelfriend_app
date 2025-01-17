@@ -55,9 +55,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
-          projectBaseDir: /home/runner/work/travelfriend_app/travelfriend_app/client/
           args: >
             -Dsonar.javascript.lcov.reportPaths=/home/runner/work/travelfriend_app/travelfriend_app/client/coverage/lcov.info
+            -Dsonar.sources=client/
+            - 
           
   build:
     needs: sonarqube

@@ -84,6 +84,7 @@ jobs:
           npm run build
 
   push:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -114,6 +115,7 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           
   deploy:
+    needs: push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

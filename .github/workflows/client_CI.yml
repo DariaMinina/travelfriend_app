@@ -56,7 +56,7 @@ jobs:
           args: >
             -Dsonar.javascript.lcov.reportPaths=./client/coverage/lcov.info
             -Dsonar.sources=client/
-            -sonar.coverage.exclusions=**/*.js,client/src/App.vue
+            -Dsonar.coverage.exclusions=**/*.js,client/src/App.vue
           
   build:
     needs: sonarqube

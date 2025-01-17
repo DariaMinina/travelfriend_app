@@ -20,6 +20,7 @@ jobs:
           cd /home/runner/work/travelfriend_app/travelfriend_app/client
           echo $(ls)
           npm install
+          npm install --save-dev @vitest/coverage-istanbul
 
       - name: Run tests
         env:

@@ -30,9 +30,37 @@ jobs:
           cd /home/runner/work/travelfriend_app/travelfriend_app/client
           echo $(ls)
           npm run test:unit
+
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: /home/runner/work/travelfriend_app/travelfriend_app/client/coverage
+  sonarqube:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+          path: /home/runner/work/travelfriend_app/travelfriend_app/client/coverage
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: /home/runner/work/travelfriend_app/travelfriend_app/client/
+          args: >
+            -Dsonar.javascript.lcov.reportPaths=/home/runner/work/travelfriend_app/travelfriend_app/client/coverage/lcov.info
           
   build:
-    needs: test
+    needs: sonarqube
     runs-on: ubuntu-latest
 
     steps:

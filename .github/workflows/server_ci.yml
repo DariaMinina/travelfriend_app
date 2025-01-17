@@ -52,12 +52,14 @@ jobs:
           export $(cat server/app/.env | xargs)
           coverage run -m pytest server/tests/
           coverage xml
+          ls -la  # Проверяем, что файл создан
+          chmod 644 coverage.xml  # Делаем файл доступным для чтения
 
       - name: Archive coverage report
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: /home/runner/work/travelfriend_app/travelfriend_app/coverage.xml
+          path: ./coverage.xml
           
   sonarqube:
     needs: test
@@ -67,7 +69,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: coverage-report
-          path:  /home/runner/work/travelfriend_app/travelfriend_app/coverage.xml
+          path: ./coverage.xml
           
       - name: Checkout code
         uses: actions/checkout@v3
@@ -88,7 +90,7 @@ jobs:
             -Dsonar.sources=server/ \
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.python.coverage.reportPaths=/home/runner/work/travelfriend_app/travelfriend_app/coverage.xml  # Для Python
+            -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
   build:
     needs: sonarqube
     runs-on: ubuntu-latest

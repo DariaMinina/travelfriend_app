@@ -8,7 +8,7 @@ on:
       - server/**
 
 jobs:
-  test-and-analyze:
+  test:
     runs-on: ubuntu-latest
     
     services:
@@ -24,13 +24,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Install sonar-scanner
-        run: |
-          SONAR_SCANNER_VERSION=5.0.1.3006 
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-          unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-          echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
       
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -60,6 +53,32 @@ jobs:
           coverage run -m pytest server/tests/
           coverage xml
 
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
+          
+  sonarqube:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download coverage report
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
+          
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Install sonar-scanner
+        run: |
+          SONAR_SCANNER_VERSION=5.0.1.3006 
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+          unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+          echo "$(pwd)/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
+
       - name: Run sonar-scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Токен из SonarQube
@@ -71,7 +90,7 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.python.coverage.reportPaths=coverage.xml  # Для Python
   build:
-    needs: test-and-analyze
+    needs: sonarqube
     runs-on: ubuntu-latest
     
     services:

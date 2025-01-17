@@ -135,6 +135,12 @@ jobs:
           push: true
           tags: vadksen01/server-app:latest
           annotations: ${{ steps.meta.outputs.annotations }}
+  deploy:
+    needs: push 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       
       - name: Install And Set up yc-cli
         run: |

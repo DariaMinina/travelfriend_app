@@ -175,6 +175,7 @@ docker push vadksen01/server-app
 7. Для подключения лучше всего настроить публичный IP. Но можно и пробросить порт: `kubectl port-forward sonarqube-sonarqube-0 9000:9000 -n sonarqube --address '0.0.0.0'`
    + Узнать имя pod'a: `kubectl get pods -n sonarqube -l "app=sonarqube,release=sonarqube" -o jsonpath="{.items[0].metadata.name}"`
    + Чтобы узнать `CLUSTER-IP`: `kubectl get csv -n sonarqube`.
+   + Узнать внешний ip адрес кластера: `kubectl get nodes -o wide`
 8. Генерируем Token для доступа:
    + Переходим в SonarQube `http://localhost:9000`.
    + `User` -> `My Account` -> `Security` -> Создаем токен и сохраняем.

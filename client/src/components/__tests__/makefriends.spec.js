@@ -56,8 +56,39 @@ http.get('http://127.0.0.1:5015/friends/search', () => {
         city: '5k4jnjk64',
       },
       ]))
+}),
+
+http.get('http://127.0.0.1:5015/friends/1', () => {
+
+  return new HttpResponse(JSON.stringify([
+      {
+        username: 'k5n6jk',
+        email: '2nk3njk2',
+        country: 'g5kgn4k5',
+        city: 'k4nk3nkjk4',
+      },
+      {
+        username: 'n45n4o6',
+        email: 'm,mevrever',
+        country: 'btbtkb',
+        city: 'btkk5k',
+      },
+      {
+        username: 'ekrm',
+        email: 'tbtb',
+        country: 'l6o5m6',
+        city: '96b6jbje',
+      },
+      {
+        username: 'mob',
+        email: 'm 5k64',
+        country: 'ewc',
+        city: '5k4jnjk64',
+      },
+      ]))
 })
 ]
+
 const server = setupServer(...restHandlers)
 // Start server before all tests
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
@@ -76,6 +107,15 @@ test("Emptiness of lists of friends and potential friends after initialisation",
   
   expect(wrapper.vm.friends).toEqual([]);
   expect(wrapper.vm.potential_friends).toEqual([]);
+});
+
+test("User is not registered after initialisation", () => {
+  expect(makefriends).toBeTruthy();
+    
+  const wrapper = mount(makefriends);
+  
+  //console.log(wrapper.vm);
+  expect(wrapper.vm.currentUserId).toEqual("Not registered");
 });
 
 test("User is not registered after initialisation", () => {
@@ -106,3 +146,13 @@ test("Get potential friends", async () => {
   console.log('I GOT <<', wrapper.vm.getPotentialFriends.call());
   console.log(wrapper.vm.potential_friends);
 });
+
+test("Get my friends", async () => {
+  expect(makefriends).toBeTruthy();
+    
+  const wrapper = mount(makefriends);
+  wrapper.vm.currentUserId = 1
+  
+  console.log('I GOT <<', wrapper.vm.getListOfUserFriends.call());
+});
+

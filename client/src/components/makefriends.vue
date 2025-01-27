@@ -604,6 +604,104 @@ export default {
     
     // find friends
     getPotentialFriends() {
+    	
+    	for (var i = 0; i < 10; i++) {
+    	if(true) {
+    	if(true) {
+    	if(true) {
+    	var t = 6;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	var t = 6;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	var t = 6;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	t = 6;
+    	t = 7;
+    	t = 8;
+    	t = 9;
+    	t = 10;
+    	}
+    	}
+    	}
+    	if(false) {
+    	if(false) {
+    	if(false) {
+    	
+    	
+    	
+    	}
+    	}
+    	}
+    	}
+    	
+    	
         const path = this.conn_addr_string + '/friends/search';
         axios.get(path, { params: { country: this.FindingFriendsCriterias.country, interests: this.FindingFriendsCriterias.interests } })
           .then((res) => {
